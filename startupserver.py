@@ -3,7 +3,7 @@
 
 import socket,os,sys,logging,serial
 from backarraycode import backarraycode 
-from processing import uiserialcont,errorhandling 
+import uiserialcont,errorhandling 
 bar_serial=serial.Serial('/dev/ttyACM0')
 logging.basicConfig(filename='/var/log/nest/servers.log',level=logging.DEBUG)
 sock=socket.socket(socket.AF_UNIX,socket.SOCK_DGRAM)
