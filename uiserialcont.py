@@ -1,5 +1,5 @@
 #! /usr/bin/python2
-
+"algorithm for barcode scanning"
 import numpy as np
 import serial,socket,threading,time
 from dbcodes import nestdbwrite as db
