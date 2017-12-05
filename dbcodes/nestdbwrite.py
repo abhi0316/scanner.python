@@ -1,7 +1,7 @@
 
 import MySQLdb as db
 
-conninit=db.connect(host="localhost" ,port=3306,user='root',passwd='Resnova123!',db='NEST')
+conninit=db.connect(host="localhost" ,port=3306,user='root',passwd='Resnova123!',db='NEST_STATION_1')
 
 cursor=conninit.cursor()
 

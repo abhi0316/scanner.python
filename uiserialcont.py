@@ -4,22 +4,24 @@ import numpy as np
 import serial,socket,threading,time
 from dbcodes import nestdbwrite as db
 from backarraycode import backarraycode as bcode
-
+newarray=[]
+barray=[]
 errlist=[]
-
+count =0
 global ptotal,pansz,barstart,prefix,datalen,suffix,barray
 # initiating server for receiving from ui
 
-def processInit(rec_buffer):
-        ptotal= int(recv_buffer[0])
-	pansz=int(recv_buffer[1])	
-	barstart=int(recv_buffer[3])
+def processInit(recv_buffer):
+	global barray,pansz,barstart,barend,prefix,datalen,suffix
+        ptotal= int(recv_buffer[1])
+	pansz=int(recv_buffer[2])	
+	barstart=int(recv_buffer[4])
 	barend=barstart+ptotal
-	prefix=int(recv_buffer[2])
-	datalen=int(recv_buffer[4])
+	prefix=int(recv_buffer[3])
+	datalen=int(recv_buffer[5])
 	suffix=prefix+datalen
 	barray=np.arange(barstart,barend+1)
-	return prefix,suffix
+	return barray,prefix,suffix
 errbar = []
 
 """
@@ -33,6 +35,7 @@ print "errbar",errbar
 
 #converts 1D array into 2D array
 def alterarray(aray):
+    global pansz
     pad = np.zeros(abs(aray.size%pansz - pansz))
     aray= np.append(aray,pad)
     # padded = abs(aray.size%pansz - pansz)
@@ -56,23 +59,26 @@ def inserror(errorcode):
     # print "inserr bararray",barray
     # alterarray(barray)
 
-print "orginal", alterarray(barray)
+#print "orginal", alterarray(barray)
 
 #creates the final array after inserting all errors
 def errorarry(barray,errbar=0):
     # modarray = alterarray(barray)
     if errbar:
-		if errbar not in errlist:
-			errlist.append(errbar)
-			print "ERRBAR", errbar
-        		modarray,errornum = inserror(errbar)
-        		print "Number of error Barcodes",errornum
-       	 		print "reshape array",modarray,modarray.size
-    			return modarray
+		for i in errbar:
+			print "DEBUG : ERRBAR NUM : " ,i
+			if i not in errlist:
+				errlist.append(i)
+				print "ERRBAR :", errbar
+        			modarray,errornum = inserror(i)
+        			print "Number of error Barcodes",errornum
+       	 			print "reshape array",modarray,modarray.size
+    		
     
 
-		else:
-			print "nothing to change"
+			else:
+				"no change to errlist"
+    		return modarray
     else:
 	return alterarray(barray)
 # serches the barcode position in the array and extracts the row whwere it is found
@@ -87,10 +93,12 @@ def search (input,aray):
 # output a 2D array which is shifted according to the errror inserted
 
 def genUpdatearray(errorinput):
-	
-	newarray = errorarry(barray)
+ 	global barray,newarray
+	print "DEBUG : BARRAY FROM UISERIALCONT :", barray	
+     	newarray = errorarry(barray)
+	print "DEBUG : 2D ARRAY NEWARRAY :", newarray
 	newarray= errorarry(barray,errbar=errorinput)
-	print "NEW ARRAY" , newarray
+	print "NEW ARRAY :" , newarray
 
 
 # generating backup array to avoid multiple time writing to db
@@ -99,7 +107,7 @@ def check_array(input,pannel):
 	arrayvar=bcode.BackArray()
 	checkvar=arrayvar.checkarray(input)
 	if len(checkvar) == 0:
-		arrayvar.setarray(pannel,pansz)
+		setarray = arrayvar.setarray(pannel,pansz)
 		return True
 	else:
 		return False
@@ -108,14 +116,14 @@ def check_array(input,pannel):
 
 
 def pre_suffix(code,pcount,scount):
-	global count,datalen 
+	global count,datalen,newarray 
 	count=count+1
 	addprefix=code[0:pcount]
-	print "PREFIX",addprefix
+	print "DEBUG : PREFIX :",addprefix
 	addsuffix=code[scount:]
-	print 'SUFFIX' , addsuffix
+	print 'DEBUG : SUFFIX :' , addsuffix
 	input=int(code[pcount:scount])
-	print "ENTERED INPUT IS ", input	
+	print "DEBUG : ENTERED INPUT IS :", input	
 	pannel = search(input,newarray)
 	chkbarr=check_array(input,pannel)
 	if chkbarr:
@@ -125,9 +133,9 @@ def pre_suffix(code,pcount,scount):
 			else:
 				pan=str(int(pannel[i])).zfill(datalen)
 				pannel_f=addprefix+pan+addsuffix
-			print "computedout",pannel_f
+			print "DEBUG : COMPUTEDOUT : ",pannel_f
 			db.NestDbInsert(count,pannel_f)
-		print "WROTE TO DB..."
+		print "DEBUG : WROTE TO DB..."
 	else:
 		count=count-1
 

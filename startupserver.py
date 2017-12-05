@@ -1,9 +1,11 @@
- "code to receive all user_details"
+
 #! /usr/bin/python
 
-import socket,os,sys,logging,serial
+import socket,os,sys,logging,serial,uiserialcont
 from backarraycode import backarraycode 
-import uiserialcont,errorhandling 
+from processing import errorhandling
+errorfilepath="/home/nest/NEST/nest_python/config/error.csv"
+file ="config/"
 bar_serial=serial.Serial('/dev/ttyACM0')
 logging.basicConfig(filename='/var/log/nest/servers.log',level=logging.DEBUG)
 sock=socket.socket(socket.AF_UNIX,socket.SOCK_DGRAM)
@@ -22,13 +24,18 @@ while True:
 		"datagram[3] >> prefixlength"
 		"datagram[4] >> firstdata"
 		"datagram[5] >> datalength"
-		file = datagram[0]
-		configfile=f.open(file,'w')
-		f.write(datagram[0],",",datagram[1],",",datagram[2],",",datagram[3],",",datagram[4],",",datagram[5],",",datagram[6])
-		f.close()
-		prefix,suffix=uiserialcont.processInit(datagram) # get prefix and suffix
-		errarray=errorhandling.readerror(errorfilepath) # read error from csv
-		errorarray=errorhandling.extractdataerror(prefix,suffix,errarray) # generater array from csv
+		file = file+datagram[0]
+		configfile=open(file,'w')
+		for i in range(0,len(datagram)):
+			configfile.write(datagram[i])
+			configfile.write(",")
+		configfile.close()
+		barray,prefix,suffix=uiserialcont.processInit(datagram) # get prefix and suffix
+		print "DEBUG : BARRAY :", barray
+		errarrayfn=errorhandling.errorHandle()
+		errarray=errarrayfn.readerror(errorfilepath) # read error from csv
+		errorarray=errarrayfn.extractdataerror(prefix,suffix,errarray) # generater array from csv
+		print "DEBUG : EARRAY :", errorarray
 		uiserialcont.genUpdatearray(errorarray) # pass it for processing
 		break
 
@@ -41,5 +48,6 @@ def process_break():
 
 
 while True:
+	print "DEBUG : READY TO SCAN ARRAY POPULATED.."
 	read=bar_serial.readline()
-	uiserialcont.pre_suffix(read,prefix,sufix)
+	uiserialcont.pre_suffix(read,prefix,suffix)

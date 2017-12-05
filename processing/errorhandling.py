@@ -1,6 +1,6 @@
 import csv
 errarray=[] # array of errors
-
+tmperrarray=[]
 
 class errorHandle():
 
@@ -8,14 +8,17 @@ class errorHandle():
 		with open (filepath,'rb') as f:
 			reader=csv.reader(f)
 			for coloumn in reader:
-				errarray.append(coloumn[0])
-				return errarray
+				tmperrarray.append(coloumn[0])
+			return tmperrarray
 
 
 
 
-	def extractdataerror(prefix,suffix,array):
-		for content in array:
-			errarray.append(int(array[prefix:suffix]))
+	def extractdataerror(self,prefix,suffix,array):
+		print len(array)
+       		for i in range(0,len(array)):
+			tmparray=array[i]
+			errarray.append(int(tmparray[prefix:suffix]))
+		print errarray
 		return errarray
 

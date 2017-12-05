@@ -9,13 +9,14 @@ class errorHandle():
 			reader=csv.reader(f)
 			for coloumn in reader:
 				errarray.append(coloumn[0])
-				return errarray
+			return errarray
 
 
 
 
 	def extractdataerror(prefix,suffix,array):
-		for content in array:
-			errarray.append(int(array[prefix:suffix]))
+		for i in len(array):
+			tmparray=array[i]
+			errarray.append(int(tmparray[prefix:suffix]))
 		return errarray
 

@@ -11,6 +11,7 @@ global ptotal,pansz,barstart,prefix,datalen,suffix,barray
 # initiating server for receiving from ui
 
 def processInit(rec_buffer):
+	global barray
         ptotal= int(recv_buffer[0])
 	pansz=int(recv_buffer[1])	
 	barstart=int(recv_buffer[3])
@@ -87,7 +88,6 @@ def search (input,aray):
 # output a 2D array which is shifted according to the errror inserted
 
 def genUpdatearray(errorinput):
-	
 	newarray = errorarry(barray)
 	newarray= errorarry(barray,errbar=errorinput)
 	print "NEW ARRAY" , newarray

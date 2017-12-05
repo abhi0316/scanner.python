@@ -1,6 +1,6 @@
 import sqlite3,logging
 
-backarray=sqlite3.connect("../Db/backarray.db")
+backarray=sqlite3.connect("/home/nest/NEST/nest_python/Db/backarray.db")
 logging.basicConfig(filename='/var/log/nest/servers.log',level=logging.DEBUG)
 class StartupChecks:
 	

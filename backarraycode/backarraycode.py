@@ -19,14 +19,12 @@ class BackArray:
 		except:
 			backarray=np.append(backarray,newarray)
 			backarray=np.resize(backarray,(count,coloumn))
-			print backarray
+			print "DEBUG : BACKARRAYCODE >>" ,backarray
 	
 
 	def checkarray(self,input):
 		global backarray,emptyarray
-		print backarray
 		aryexist=np.argwhere(backarray == input)
-		print aryexist
 		if len(aryexist) == 0:
 			print "not found"
 		return aryexist
