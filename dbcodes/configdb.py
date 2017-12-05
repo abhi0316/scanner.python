@@ -20,3 +20,10 @@ class SqLiteOperations:
 			logging.info("error db updated....")
 	
 
+	def loadConf(name):
+		cursor=configdb.cursor()
+		cursor.execute("select pcbtotal,pcbperpannel,prefixlength,firstdata,datalength from config where name='%s'" %name)
+		varcache=cursor.fetchall()
+		vartuple=varcache[0]
+		varlist=list(vartuple)
+		return varlist		

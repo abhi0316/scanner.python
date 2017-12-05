@@ -19,6 +19,7 @@ class errorHandle():
        		for i in range(0,len(array)):
 			tmparray=array[i]
 			errarray.append(int(tmparray[prefix:suffix]))
-		print errarray
+		errarray=sorted(errarray)
 		return errarray
+
 

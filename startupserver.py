@@ -15,15 +15,7 @@ if os.path.exists(server_address):
 	os.remove(server_address)
 sock.bind(server_address)
 logging.info('serverupandrunning...')
-
-
-#def startupCheck(configname):
-
-	
-
-
-
-
+confdb=cdb.SqLiteOperations()
 
 while True:
 		datagram = sock.recv(8000)
@@ -35,14 +27,11 @@ while True:
 		"datagram[3] >> prefixlength"
 		"datagram[4] >> firstdata"
 		"datagram[5] >> datalength"
-		file = file+datagram[0]
-		configfile=open(file,'w')
-		for i in range(0,len(datagram)):
-			configfile.write(datagram[i])
-			configfile.write(",")
-		configfile.close()
-		confdb=cdb.SqLiteOperations()
-		confdb.InsertConfig(datagram[0],datagram[1],datagram[2],datagram[3],datagram[4],datagram[5])
+		if len(datagram) == 1:
+			datagram = confdb.loadConf(datagram[0])
+		else:
+			confdb.InsertConfig(datagram[0],datagram[1],datagram[2],datagram[3],datagram[4],datagram[5])
+
 		barray,prefix,suffix=uiserialcont.processInit(datagram) # get prefix and suffix
 		print "DEBUG : BARRAY :", barray
 		errarrayfn=errorhandling.errorHandle()
