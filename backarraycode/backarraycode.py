@@ -20,7 +20,10 @@ class BackArray:
 			backarray=np.append(backarray,newarray)
 			backarray=np.resize(backarray,(count,coloumn))
 			print "DEBUG : BACKARRAYCODE >>" ,backarray
-	
+		backarytodb = bdb.StartupChecks()
+		for i in range (0,len(newarray)):
+				dbaray=int(newarray[i])
+				backarytodb.backarrayInsert(dbaray)
 
 	def checkarray(self,input):
 		global backarray,emptyarray

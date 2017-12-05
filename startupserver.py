@@ -4,6 +4,7 @@
 import socket,os,sys,logging,serial,uiserialcont
 from backarraycode import backarraycode 
 from processing import errorhandling
+from dbcodes import configdb as cdb
 errorfilepath="/home/nest/NEST/nest_python/config/error.csv"
 file ="config/"
 bar_serial=serial.Serial('/dev/ttyACM0')
@@ -14,6 +15,16 @@ if os.path.exists(server_address):
 	os.remove(server_address)
 sock.bind(server_address)
 logging.info('serverupandrunning...')
+
+
+#def startupCheck(configname):
+
+	
+
+
+
+
+
 while True:
 		datagram = sock.recv(8000)
 		logging.info("data received")
@@ -30,6 +41,8 @@ while True:
 			configfile.write(datagram[i])
 			configfile.write(",")
 		configfile.close()
+		confdb=cdb.SqLiteOperations()
+		confdb.InsertConfig(datagram[0],datagram[1],datagram[2],datagram[3],datagram[4],datagram[5])
 		barray,prefix,suffix=uiserialcont.processInit(datagram) # get prefix and suffix
 		print "DEBUG : BARRAY :", barray
 		errarrayfn=errorhandling.errorHandle()
