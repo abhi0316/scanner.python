@@ -15,6 +15,7 @@ class errorHandle():
 
 
 	def extractdataerror(self,prefix,suffix,array):
+		global errarray
 		print len(array)
        		for i in range(0,len(array)):
 			tmparray=array[i]

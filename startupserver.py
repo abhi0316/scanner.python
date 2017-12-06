@@ -29,6 +29,7 @@ while True:
 		"datagram[5] >> datalength"
 		if len(datagram) == 1:
 			datagram = confdb.loadConf(datagram[0])
+			print "DEBUG : DATAGRAM DB: " ,datagram
 		else:
 			confdb.InsertConfig(datagram[0],datagram[1],datagram[2],datagram[3],datagram[4],datagram[5])
 
