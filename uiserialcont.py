@@ -64,7 +64,7 @@ def inserror(errorcode):
 #creates the final array after inserting all errors
 def errorarry(barray,errbar=0):
     # modarray = alterarray(barray)
-    if errbar:
+    if isinstance(errbar,list):
 		for i in errbar:
 			print "DEBUG : ERRBAR NUM : " ,i
 			if i not in errlist:
@@ -79,6 +79,18 @@ def errorarry(barray,errbar=0):
 			else:
 				"no change to errlist"
     		return modarray
+    if isinstance(errbar,int):
+          if errbar not in errlist:
+		if errbar > int(errlist[-1]):
+			errlist.append(errbar)
+			modarray,errornum = inserror(errbar)
+			return modarray
+        	else:
+			pass
+	  else:
+		pass
+				
+    
     else:
 	return alterarray(barray)
 # serches the barcode position in the array and extracts the row whwere it is found
@@ -99,6 +111,13 @@ def genUpdatearray(errorinput):
 	print "DEBUG : 2D ARRAY NEWARRAY :", newarray
 	newarray= errorarry(barray,errbar=errorinput)
 	print "NEW ARRAY :" , newarray
+
+
+
+def runtimeError(errorinput):
+	global newarray
+	newarray=errorarry(barray,errbar=errorinput)
+		
 
 
 # generating backup array to avoid multiple time writing to db
