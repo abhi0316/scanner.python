@@ -24,6 +24,15 @@ def processInit(recv_buffer):
 	return barray,prefix,suffix
 errbar = []
 
+def restartPgm():
+	global errbar,newarray,barray,errlist,count
+	newarray=[]
+	barray=[]
+	errlist=[]
+	count =0
+
+
+
 """
 #1D array filled with barcoe elements
 barray = np.arange(barstart,barend+1)
@@ -63,8 +72,8 @@ def inserror(errorcode):
 
 #creates the final array after inserting all errors
 def errorarry(barray,errbar=0):
-    # modarray = alterarray(barray)
-    if isinstance(errbar,list):
+    # modarray = alterarray(barray) 
+    if errbar and isinstance(errbar,list) :
 		for i in errbar:
 			print "DEBUG : ERRBAR NUM : " ,i
 			if i not in errlist:
@@ -79,7 +88,7 @@ def errorarry(barray,errbar=0):
 			else:
 				"no change to errlist"
     		return modarray
-    if isinstance(errbar,int):
+    if errbar and isinstance(errbar,int):
           if errbar not in errlist:
 		if errbar > int(errlist[-1]):
 			errlist.append(errbar)

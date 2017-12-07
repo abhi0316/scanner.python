@@ -37,3 +37,10 @@ class BackArray:
 		backarray=backarray.ravel()
 		for i in range(0,len(backarray)):
 			bdb.backarrayInsert(backarray[i])
+
+
+	def restartPgm(self):
+		global backarray,count,emptyarray 
+		backarray=0
+		count=0
+		emptyarray=[]

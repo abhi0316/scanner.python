@@ -24,3 +24,7 @@ class errorHandle():
 		return errarray
 
 
+	def restartPgm(self):
+		global errarray,tmperrarray
+		errarray=[]
+		tmperrarray=[]
