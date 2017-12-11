@@ -1,26 +1,47 @@
 
 #! /usr/bin/python
 
-import socket,os.path,sys,logging,serial,uiserialcont
+import socket,os,sys,logging,serial,uiserialcont,shutil
 from backarraycode import backarraycode 
 from processing import errorhandling,csvread
 from dbcodes import configdb as cdb
-errorfilepath="/home/nest/NEST/nest_python/config/error.csv"
-configfile ="/home/nest/NEST/nest_python/config/config.csv"
-configwrite="/home/nest/NEST/nest_python/configwrite/"
-fbar_serial=serial.Serial('/dev/ttyACM0')
+from dbcodes import nesterrdbwrite as errdb
+errorfilepath="/home/nest/NEST/nest_python/config/error/"
+configfile ="/home/nest/NEST/nest_python/config/configs/config.csv"
+configwrite="/home/nest/NEST/configs/"
 logging.basicConfig(filename='/var/log/nest/servers.log',level=logging.DEBUG)
 sock=socket.socket(socket.AF_UNIX,socket.SOCK_DGRAM)
 server_address='/run/nest/socket_python_nest'
+count =0
+try:
+	os.makedirs('/run/nest/')
+except:
+	pass	
 if os.path.exists(server_address):
 	os.remove(server_address)
 sock.bind(server_address)
+errarrayfn=errorhandling.errorHandle()
 logging.info('serverupandrunning...')
 confdb=cdb.SqLiteOperations()
-def startup():	
+configfilewrite="fileconfig"
+def userInterupt():
+		errdb.NestDbQuery()
+                logging.info("DEBUG : PROGRAM STOPPED BY USER")
+                uiserialcont.restartPgm()
+                backarryclear=backarraycode.BackArray()
+                backarryclear.restartPgm()
+                errarrayfn.restartPgm()
+                startup()
+
+
+
+def startup():
+	global configfilewrite,count	
 	while True:
 		datagram = sock.recv(8000)
 		logging.info("data received")
+		if os.path.isdir('/tmp/error'):
+                        os.system('rm -rf /tmp/error')
 		datagram=datagram.split(",")
 		"datagram[0] >> configfilename"
 		"datagram[1] >> pcbtotal"
@@ -32,14 +53,18 @@ def startup():
 			datagram = confdb.loadConf(datagram[0])
 			print "DEBUG : DATAGRAM DB: " ,datagram"""
 		if len(datagram) == 1:
-			if os.path.is_file(configfile):
-                                print "DEBUG : CONFIG FILE UPLOAD LOCATION"
+			print "datagram is", datagram[0]
+			chkconfig=configwrite+datagram[0]
+			if os.path.isfile(chkconfig):
+				shutil.copy(chkconfig,configfile)
+                                logging.info("DEBUG : CONFIG FILE UPLOAD LOCATION")
                                 datagram=csvread.readValues()
-				confdb.InsertConfig(datagram[0],datagram[1],datagram[2],datagram[3],datagram[4],datagram[5])
+				os.remove(configfile)			
+				
 			
 		else:   
-			configfilewrite=configfilewrite+datagram[0]
-			file=open(configfilewrite,'w')
+			configfilewrite=configwrite+datagram[0]
+			file=open(configfilewrite,'w+')
 			file.write(datagram[0])
 			file.write('\n')
 			file.write(datagram[1])
@@ -52,28 +77,65 @@ def startup():
                         file.write('\n')
                         file.write(datagram[5])
 			file.close()
-			confdb.InsertConfig(datagram[0],datagram[1],datagram[2],datagram[3],datagram[4],datagram[5])
-			
-		barray,prefix,suffix=uiserialcont.processInit(datagram) # get prefix and suffix
-		print "DEBUG : BARRAY :", barray
-		errarrayfn=errorhandling.errorHandle()
-		errarray=errarrayfn.readerror(errorfilepath) # read error from csv
-		errorarray=errarrayfn.extractdataerror(prefix,suffix,errarray) # generater array from csv
-		print "DEBUG : EARRAY :", errorarray
-		uiserialcont.genUpdatearray(errorarray) # pass it for processing
+			#confdb.InsertConfig(datagram[0],datagram[1],datagram[2],datagram[3],datagram[4],datagram[5])
+		try:	
+			barray,prefix,suffix=uiserialcont.processInit(datagram) # get prefix and suffix
+			print logging.info("DEBUG : UPDATING SERIALREAD")
+			errarrayfn=errorhandling.errorHandle()
+			errarray=errarrayfn.readerror(errorfilepath) # read error from csv
+			if errarray:
+				try:
+					errorarray=errarrayfn.extractdataerror(prefix,suffix,errarray) # generater array from csv
+					print "DEBUG : EARRAY :", errorarray
+					uiserialcont.genUpdatearray(errorarray) # pass it for processing
+				
+				except:
+					file=open('/var/nest/tmp.tmp','w+')
+                                	file.write('error')
+                                	file.close()
+					startup()
+                                	break
+	
+			else:
+				uiserialcont.genUpdatearray()
+				print "DEBUG : STATNDING HERE"
+		except:
+			file=open('/var/nest/tmp.tmp','w+')
+                        file.write('error')
+                        file.close()
+                        startup()
+	
 		break
 
+	bar_serial=serial.Serial('/dev/ttyACM0',timeout=0)
 	while True:
+		
+		if (os.path.isdir('/tmp/error')):
+			os.system('rm -rf /tmp/error')
+			userInterupt()
+        	#print "DEBUG : READY TO SCAN ARRAY POPULATED.."
 		try:
-			print "DEBUG : READY TO SCAN ARRAY POPULATED.."
-			read=bar_serial.readline()
-			uiserialcont.pre_suffix(read,prefix,suffix)
-		except:
-			print "DEBUG : PROGRAM STOPPED"
-			uiserialcont.restartPgm()
-			backarryclear=backarraycode.BackArray()
-			backarryclear.restartPgm()
-			errarrayfn.restartPgm()
-			startup()
+                	read=bar_serial.readline()
+			if read:
+				print "DEBUG : PRINT FROM SERIAL:"
+                		val=uiserialcont.pre_suffix(read)
 
-startup()
+				if val == "ERROR":
+					print "ERROR"
+					"""
+					file=open('/var/nest/tmp.tmp','w+')
+					file.write('error')
+					file.close() 
+					"""
+					pass
+		except:
+			file=open('/var/nest/tmp.tmp','w+')
+                       	file.write('error')
+                        file.close()
+                        break
+
+
+	startup()
+
+startup()		
+

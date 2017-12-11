@@ -1,16 +1,28 @@
 import csv
+import os
 errarray=[] # array of errors
 tmperrarray=[]
 
 class errorHandle():
 
 	def readerror(self,filepath):
-		with open (filepath,'rb') as f:
-			reader=csv.reader(f)
-			for coloumn in reader:
-				tmperrarray.append(coloumn[0])
-			return tmperrarray
-
+		filenames=os.listdir(filepath)
+		try:
+			filename=filepath+filenames[0]
+			print "DEBUG : FILE NAME IS",filename
+				
+			with open (filename,'rb') as f:
+				reader=csv.reader(f)
+				for coloumn in reader:
+					coloumnval=coloumn[0].split()
+					if coloumnval:
+						tmperrarray.append(coloumnval)
+				os.remove(filename)
+				return tmperrarray
+		except:
+			print "DEBUG : ERROR OCCURED IN OPEN FILE"
+			array=0
+			return array 
 
 
 

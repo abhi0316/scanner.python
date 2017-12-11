@@ -1,7 +1,9 @@
 import socket,uiserialcont
-
 sock=socket.socket(socket.AF_UNIX,socket.SOCK_DGRAM)
-server_address='/tmp/nest/sock_python_error'
+server_address='/run/nest/socket_error_nest.Socket'
 while True:
 		datagram =sock.recv(1024)
-		runtimeError(int(datagram))
+		if len(datagram) == 2:
+			uiserialcont.runtimeError(int(datagram[1]))
+		else: 
+			startupserver.userInterupt()

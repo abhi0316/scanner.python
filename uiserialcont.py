@@ -1,9 +1,14 @@
 #! /usr/bin/python2
+import RPi.GPIO as GPIO
 "algorithm for barcode scanning"
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(14,GPIO.OUT)
+
 import numpy as np
-import serial,socket,threading,time
+import serial,socket,threading,time,logging
 from dbcodes import nestdbwrite as db
 from backarraycode import backarraycode as bcode
+logging.basicConfig(filename='/var/log/nest/servers.log',level=logging.DEBUG)
 newarray=[]
 barray=[]
 errlist=[]
@@ -23,6 +28,7 @@ def processInit(recv_buffer):
 	barray=np.arange(barstart,barend+1)
 	return barray,prefix,suffix
 errbar = []
+
 
 def restartPgm():
 	global errbar,newarray,barray,errlist,count
@@ -86,7 +92,7 @@ def errorarry(barray,errbar=0):
     
 
 			else:
-				"no change to errlist"
+				logging.info("DEBUG: NO CHANGE TO ERR LIST ")
     		return modarray
     if errbar and isinstance(errbar,int):
           if errbar not in errlist:
@@ -113,13 +119,16 @@ def search (input,aray):
 #input - 1d array filled with barcodes  and array of last error PCB's
 # output a 2D array which is shifted according to the errror inserted
 
-def genUpdatearray(errorinput):
+def genUpdatearray(errorinput=0):
  	global barray,newarray
-	print "DEBUG : BARRAY FROM UISERIALCONT :", barray	
-     	newarray = errorarry(barray)
-	print "DEBUG : 2D ARRAY NEWARRAY :", newarray
-	newarray= errorarry(barray,errbar=errorinput)
-	print "NEW ARRAY :" , newarray
+	print "DEBUG : ERROR INPUT ",errorinput
+	print "DEBUG : BARRAY FROM UISERIALCONT :", barray
+	if not errorinput:	
+     		newarray = errorarry(barray)
+		print "DEBUG : 2D ARRAY NEWARRAY :", newarray
+	else:
+		newarray= errorarry(barray,errbar=errorinput)
+		print "NEW ARRAY :" , newarray
 
 
 
@@ -143,31 +152,41 @@ def check_array(input,pannel):
 #input - current scanned barcode and 2D shifted barcode
 
 
-def pre_suffix(code,pcount,scount):
-	global count,datalen,newarray 
+def pre_suffix(code):
+	global count,datalen,newarray,prefix,suffix
 	count=count+1
-	addprefix=code[0:pcount]
-	print "DEBUG : PREFIX :",addprefix
-	addsuffix=code[scount:]
-	print 'DEBUG : SUFFIX :' , addsuffix
-	input=int(code[pcount:scount])
-	print "DEBUG : ENTERED INPUT IS :", input	
-	pannel = search(input,newarray)
-	chkbarr=check_array(input,pannel)
-	if chkbarr:
-		for i in range(0,len(pannel)):
-			if int(pannel[i])==0:
-				pannel_f="ERROR"
-			else:
-				pan=str(int(pannel[i])).zfill(datalen)
-				pannel_f=addprefix+pan+addsuffix
-			print "DEBUG : COMPUTEDOUT : ",pannel_f
-			db.NestDbInsert(count,pannel_f)
-		print "DEBUG : WROTE TO DB..."
-	else:
-		count=count-1
+	try:
+		addprefix=code[0:prefix]
+		print "DEBUG : PREFIX LENGTH" ,prefix
+		print "DEBUG : SUFFIX LENGTH" ,suffix
+		print "DEBUG : PREFIX :",addprefix
+		addsuffix=code[suffix:]
+		print 'DEBUG : SUFFIX :' , addsuffix
+		input=int(code[prefix:suffix])
+		print "DEBUG : ENTERED INPUT IS :", input	
+		pannel = search(input,newarray)
+		chkbarr=check_array(input,pannel)
+		if chkbarr:
+			for i in range(0,len(pannel)):
+				if int(pannel[i])==0:
+					pannel_f="ERROR"
+				else:
+					pan=str(int(pannel[i])).zfill(datalen)
+					pannel_f=addprefix+pan+addsuffix
+				print "DEBUG : COMPUTEDOUT : ",pannel_f
+				db.NestDbInsert(count,pannel_f)
+			logging.info( "DEBUG : WROTE TO DB...")
+			GPIO.output(14,True)
+			time.sleep(4)
+			GPIO.output(14,False)
+			time.sleep(4)
+			logging.info( "DEBUG : BEEP COMPLETE ")
+		else:
+			count=count-1
 
-
+	except:
+		val="ERROR"
+		return val
 
 
 

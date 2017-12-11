@@ -1,6 +1,6 @@
 import csv
 
-filepath='/home/nest/NEST/nest_python/config/config.csv'
+filepath='/home/nest/NEST/nest_python/config/configs/config.csv'
 datagram=[]
 def readValues():
 	with open (filepath,'rb') as f:
